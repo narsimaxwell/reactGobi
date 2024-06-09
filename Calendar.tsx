@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const posts = [
+interface Post {
+    date: string;
+    title: string;
+    platform: string;
+}
+
+interface PopupState {
+    show: boolean;
+    post: Post | null;
+    date: string;
+}
+
+const posts: Post[] = [
     { date: '2024-06-19', title: 'LinkedIn Post 1', platform: 'LinkedIn' },
     { date: '2024-06-19', title: 'Instagram Post 1', platform: 'Instagram' }
 ];
 
-const Calendar = () => {
+const Calendar: React.FC = () => {
     const currentDate = new Date();
-    const [selectedDate, setSelectedDate] = useState(currentDate);
-    const [isWeekView, setIsWeekView] = useState(false);
-    const [popup, setPopup] = useState({ show: false, post: null, date: '' });
+    const [selectedDate, setSelectedDate] = useState<Date>(currentDate);
+    const [isWeekView, setIsWeekView] = useState<boolean>(false);
+    const [popup, setPopup] = useState<PopupState>({ show: false, post: null, date: '' });
 
     useEffect(() => {
         renderCalendar();
@@ -24,7 +36,7 @@ const Calendar = () => {
         const firstDayIndex = firstDayOfMonth.getDay();
         const lastDayIndex = lastDayOfMonth.getDate();
         
-        let calendarCells = [];
+        let calendarCells: JSX.Element[] = [];
 
         if (isWeekView) {
             const startOfWeek = selectedDate.getDate() - selectedDate.getDay();
@@ -46,7 +58,7 @@ const Calendar = () => {
         return calendarCells;
     };
 
-    const createDateCell = (date, year, month) => {
+    const createDateCell = (date: Date, year: number, month: number) => {
         const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
         
         const postElements = posts.filter(p => p.date === dateStr).map((post, index) => (
@@ -63,7 +75,7 @@ const Calendar = () => {
         );
     };
 
-    const openPopup = (post, date) => {
+    const openPopup = (post: Post, date: string) => {
         setPopup({ show: true, post, date });
     };
 
@@ -72,28 +84,32 @@ const Calendar = () => {
     };
 
     const savePost = () => {
-        const newDate = document.getElementById('editDate').value;
-        const newTitle = document.getElementById('editTitle').value;
+        if (popup.post) {
+            const newDate = (document.getElementById('editDate') as HTMLInputElement).value;
+            const newTitle = (document.getElementById('editTitle') as HTMLInputElement).value;
 
-        posts.forEach(p => {
-            if (p.date === popup.date && p.title === popup.post.title && p.platform === popup.post.platform) {
-                p.title = newTitle;
-                p.date = newDate;
-            }
-        });
+            posts.forEach(p => {
+                if (p.date === popup.date && p.title === popup.post!.title && p.platform === popup.post!.platform) {
+                    p.title = newTitle;
+                    p.date = newDate;
+                }
+            });
 
-        closePopup();
-        renderCalendar();
+            closePopup();
+            renderCalendar();
+        }
     };
 
     const deletePost = () => {
-        const index = posts.indexOf(popup.post);
-        if (index > -1) {
-            posts.splice(index, 1);
-        }
+        if (popup.post) {
+            const index = posts.indexOf(popup.post);
+            if (index > -1) {
+                posts.splice(index, 1);
+            }
 
-        closePopup();
-        renderCalendar();
+            closePopup();
+            renderCalendar();
+        }
     };
 
     return (
@@ -151,7 +167,7 @@ const Calendar = () => {
                 {renderCalendar()}
             </div>
 
-            {popup.show && (
+            {popup.show && popup.post && (
                 <div className="popup">
                     <h3>Edit Post</h3>
                     <label htmlFor="editTitle">Title:</label>
